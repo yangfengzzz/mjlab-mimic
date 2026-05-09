@@ -28,6 +28,10 @@ def get_assets(meshdir: str) -> dict[str, bytes]:
 def get_spec() -> mujoco.MjSpec:
   spec = mujoco.MjSpec.from_file(str(BPX_XML))
   spec.assets = get_assets(spec.meshdir)
+  # BPX ships torque motor actuators in MJCF. Delete them so mjlab owns the
+  # actuator model and action space, matching the Go2 tracking setup.
+  while spec.actuators:
+    spec.delete(spec.actuators[0])
   return spec
 
 
@@ -84,8 +88,8 @@ INIT_STATE = EntityCfg.InitialStateCfg(
   pos=(0.0, 0.0, 0.42),
   joint_pos={
     ".*_hip_roll_joint": 0.0,
-    ".*_hip_pitch_joint": 0.9,
-    ".*_knee_joint": -1.8,
+    ".*_hip_pitch_joint": 0.6,
+    ".*_knee_joint": -0.9,
   },
   joint_vel={".*": 0.0},
 )
@@ -102,7 +106,7 @@ FULL_COLLISION = CollisionCfg(
   priority={_toe_regex: 1},
   friction={_toe_regex: (0.6,)},
   contype=1,
-  conaffinity=0,
+  conaffinity=1,
 )
 
 ##
