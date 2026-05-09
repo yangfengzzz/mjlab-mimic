@@ -355,8 +355,15 @@ class Simulation:
     if not self.wp_device.is_cuda:
       return False
 
-    driver_ver = wp.context.runtime.driver_version
     has_mempool = wp.is_mempool_enabled(self.wp_device)
+    driver_ver = None
+    get_cuda_driver_version = getattr(wp, "get_cuda_driver_version", None)
+    if get_cuda_driver_version is not None:
+      driver_ver = get_cuda_driver_version()
+
+    if driver_ver is None:
+      runtime = getattr(getattr(wp, "context", None), "runtime", None)
+      driver_ver = getattr(runtime, "driver_version", None)
 
     if driver_ver is None:
       print("[WARNING] CUDA Graphs disabled: driver version unavailable")

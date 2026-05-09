@@ -5,6 +5,7 @@ from mjlab.asset_zoo.robots import (
   get_bpx_robot_cfg,
 )
 from mjlab.envs import ManagerBasedRlEnvCfg
+from mjlab.envs import mdp as envs_mdp
 from mjlab.envs.mdp.actions import JointPositionActionCfg
 from mjlab.managers.observation_manager import ObservationGroupCfg
 from mjlab.sensor import ContactMatch, ContactSensorCfg
@@ -20,6 +21,8 @@ def bpx_flat_tracking_env_cfg(
   cfg = make_tracking_env_cfg()
 
   cfg.scene.entities = {"robot": get_bpx_robot_cfg()}
+  cfg.sim.nconmax = 128
+  cfg.sim.njmax = 512
 
   cfg.scene.sensors = (
     ContactSensorCfg(
@@ -63,6 +66,11 @@ def bpx_flat_tracking_env_cfg(
   cfg.rewards.pop("motion_joint_torque", None)
   cfg.observations["actor"].terms.pop("joint_torque", None)
   cfg.observations["critic"].terms.pop("joint_torque", None)
+  for group_name in ("actor", "critic"):
+    cfg.observations[group_name].terms["base_lin_vel"].func = envs_mdp.base_lin_vel
+    cfg.observations[group_name].terms["base_lin_vel"].params = {}
+    cfg.observations[group_name].terms["base_ang_vel"].func = envs_mdp.base_ang_vel
+    cfg.observations[group_name].terms["base_ang_vel"].params = {}
 
   cfg.events["foot_friction"].params[
     "asset_cfg"

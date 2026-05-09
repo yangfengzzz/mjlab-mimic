@@ -7,6 +7,7 @@ import torch
 from conftest import get_test_device
 
 from mjlab.sim import MujocoCfg, Simulation, SimulationCfg
+from mjlab.sim import sim as sim_module
 
 
 @pytest.fixture
@@ -87,6 +88,36 @@ def test_simulation_config_is_piped(robot_xml, device):
   # SimulationCfg should be applied to wp_model.
   assert sim.wp_model.opt.contact_sensor_maxmatch == cfg.contact_sensor_maxmatch
   assert sim.wp_model.opt.ls_parallel == cfg.ls_parallel
+
+
+def test_cuda_graph_uses_warp_113_driver_version_api(monkeypatch):
+  """Warp 1.13 driver-version API should keep CUDA graphs enabled."""
+  sim = Simulation.__new__(Simulation)
+
+  class FakeDevice:
+    is_cuda = True
+
+  sim.wp_device = FakeDevice()
+  monkeypatch.setattr(sim_module.wp, "is_mempool_enabled", lambda _device: True)
+  monkeypatch.delattr(sim_module.wp, "context", raising=False)
+  monkeypatch.setattr(sim_module.wp, "get_cuda_driver_version", lambda: (13, 0))
+
+  assert sim._should_use_cuda_graph()
+
+
+def test_cuda_graph_disabled_when_warp_driver_version_unavailable(monkeypatch):
+  """Missing Warp driver-version APIs should disable CUDA graphs gracefully."""
+  sim = Simulation.__new__(Simulation)
+
+  class FakeDevice:
+    is_cuda = True
+
+  sim.wp_device = FakeDevice()
+  monkeypatch.setattr(sim_module.wp, "is_mempool_enabled", lambda _device: True)
+  monkeypatch.setattr(sim_module.wp, "context", None, raising=False)
+  monkeypatch.delattr(sim_module.wp, "get_cuda_driver_version", raising=False)
+
+  assert not sim._should_use_cuda_graph()
 
 
 def test_sim_reset_restores_initial_state(robot_xml, device):

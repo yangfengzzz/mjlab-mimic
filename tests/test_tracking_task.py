@@ -3,6 +3,7 @@
 import pytest
 
 from mjlab.asset_zoo.robots import G1_ACTION_SCALE
+from mjlab.envs import mdp as envs_mdp
 from mjlab.envs.mdp.actions import JointPositionActionCfg
 from mjlab.tasks.registry import list_tasks, load_env_cfg
 from mjlab.tasks.tracking.mdp import MotionCommandCfg
@@ -70,6 +71,24 @@ def test_tracking_no_state_estimation_observations() -> None:
       f"Task {task_id} ({mode_str}) has base_lin_vel in policy, "
       "expected it to be removed for no-state-estimation variant"
     )
+
+
+def test_bpx_tracking_uses_entity_base_velocity_observations() -> None:
+  """BPX tracking should not depend on missing imu_* builtin sensors."""
+  cfg = load_env_cfg("Mjlab-Tracking-Flat-BPX")
+
+  for group_name in ("actor", "critic"):
+    terms = cfg.observations[group_name].terms
+    assert terms["base_lin_vel"].func is envs_mdp.base_lin_vel
+    assert terms["base_ang_vel"].func is envs_mdp.base_ang_vel
+
+
+def test_bpx_tracking_sets_contact_buffer_for_sideflip() -> None:
+  """BPX side-flip contacts exceed the base tracking nconmax heuristic."""
+  cfg = load_env_cfg("Mjlab-Tracking-Flat-BPX")
+
+  assert cfg.sim.nconmax == 128
+  assert cfg.sim.njmax == 512
 
 
 def test_tracking_play_disables_rsi_randomization() -> None:
