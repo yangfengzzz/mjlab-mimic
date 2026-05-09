@@ -2,6 +2,7 @@
 
 import pytest
 
+import mjlab.tasks  # noqa: F401
 from mjlab.envs import ManagerBasedRlEnvCfg
 from mjlab.managers.observation_manager import ObservationGroupCfg
 from mjlab.tasks.registry import list_tasks, load_env_cfg
@@ -23,6 +24,12 @@ def test_all_tasks_loadable(all_task_ids: list[str]) -> None:
       )
     except Exception as e:
       pytest.fail(f"Failed to load task '{task_id}': {e}")
+
+
+def test_bpx_tracking_tasks_registered(all_task_ids: list[str]) -> None:
+  """BPX tracking tasks should be available from the task registry."""
+  assert "Mjlab-Tracking-Flat-BPX" in all_task_ids
+  assert "Mjlab-Tracking-Flat-BPX-No-State-Estimation" in all_task_ids
 
 
 def test_all_tasks_have_play_config(all_task_ids: list[str]) -> None:

@@ -8,6 +8,8 @@ Upcoming version (not yet released)
 Added
 ^^^^^
 
+- Added Black Panther X (BPX) robot assets and flat motion tracking task
+  configurations.
 - Added a dedicated VS Code task for ``mjlab.scripts.convert_gc_go2`` with
   prompts for CSV path, FPS, device selection, optional line range, and video
   rendering.
