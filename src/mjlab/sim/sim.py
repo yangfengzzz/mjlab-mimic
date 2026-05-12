@@ -47,6 +47,19 @@ _SOLVER_MAP = {
 }
 
 
+def _get_cuda_driver_version() -> tuple[int, int] | None:
+  """Return CUDA driver version across supported Warp APIs."""
+  context = getattr(wp, "context", None)
+  runtime = getattr(context, "runtime", None)
+  if runtime is not None:
+    return cast(tuple[int, int] | None, runtime.driver_version)
+
+  get_driver_version = getattr(wp, "get_cuda_driver_version", None)
+  if get_driver_version is None:
+    return None
+  return cast(tuple[int, int] | None, get_driver_version())
+
+
 @dataclass
 class MujocoCfg:
   """Configuration for MuJoCo simulation parameters."""
@@ -355,7 +368,7 @@ class Simulation:
     if not self.wp_device.is_cuda:
       return False
 
-    driver_ver = wp.context.runtime.driver_version
+    driver_ver = _get_cuda_driver_version()
     has_mempool = wp.is_mempool_enabled(self.wp_device)
 
     if driver_ver is None:

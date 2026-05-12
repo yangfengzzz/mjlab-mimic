@@ -7,6 +7,19 @@ import torch
 from conftest import get_test_device
 
 from mjlab.sim import MujocoCfg, Simulation, SimulationCfg
+from mjlab.sim.sim import _get_cuda_driver_version
+
+
+def test_get_cuda_driver_version_supports_warp_113_api(monkeypatch):
+  """CUDA driver lookup should support Warp versions without wp.context."""
+  monkeypatch.delattr("mjlab.sim.sim.wp.context", raising=False)
+  monkeypatch.setattr(
+    "mjlab.sim.sim.wp.get_cuda_driver_version",
+    lambda: (13, 0),
+    raising=False,
+  )
+
+  assert _get_cuda_driver_version() == (13, 0)
 
 
 @pytest.fixture
