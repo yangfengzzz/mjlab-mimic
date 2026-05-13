@@ -7,7 +7,6 @@ import mujoco
 from mjlab import MJLAB_SRC_PATH
 from mjlab.actuator import BuiltinPositionActuatorCfg
 from mjlab.entity import EntityArticulationInfoCfg, EntityCfg
-from mjlab.utils.actuator import ElectricActuator, reflected_inertia
 from mjlab.utils.os import update_assets
 from mjlab.utils.spec_config import CollisionCfg
 
@@ -37,77 +36,41 @@ def get_spec() -> mujoco.MjSpec:
 # Actuator config.
 ##
 
-# Rotor inertia.
-# Ref: https://github.com/unitreerobotics/unitree_ros/blob/master/robots/go2_description/urdf/go2_description.urdf#L90
-# Extracted Ixx (rotation along x-axis).
-ROTOR_INERTIA = 0.000111842
-
-# Gearbox.
-# Ref: https://www.unitree.com/cn/go1/motor
-# This is different with go1 though they seem to use same motor. 
-HIP_GEAR_RATIO = 6.33
-KNEE_GEAR_RATIO = HIP_GEAR_RATIO * 1.92
-
-HIP_ACTUATOR = ElectricActuator(
-  reflected_inertia=reflected_inertia(ROTOR_INERTIA, HIP_GEAR_RATIO),
-  velocity_limit=30.1,
-  effort_limit=23.7,
+# Mirrors /home/yangfengzzz/Desktop/unitree_rl_mjlab/src/assets/robots/
+# unitree_go2/go2_constants.py.
+GO2_ACTUATOR_HIP = BuiltinPositionActuatorCfg(
+  target_names_expr=(".*hip_.*",),
+  stiffness=20.0,
+  damping=1.0,
+  effort_limit=23.5,
+  armature=0.01,
 )
-KNEE_ACTUATOR = ElectricActuator(
-  reflected_inertia=reflected_inertia(ROTOR_INERTIA, KNEE_GEAR_RATIO),
-  velocity_limit=15.70,
-  effort_limit=45.43,
+GO2_ACTUATOR_THIGH = BuiltinPositionActuatorCfg(
+  target_names_expr=(".*thigh_.*",),
+  stiffness=20.0,
+  damping=1.0,
+  effort_limit=23.5,
+  armature=0.01,
 )
-
-# TODO: need check
-NATURAL_FREQ = 10 * 2.0 * 3.1415926535  # 10Hz
-DAMPING_RATIO = 2.0
-
-STIFFNESS_HIP = HIP_ACTUATOR.reflected_inertia * NATURAL_FREQ**2
-DAMPING_HIP = 2 * DAMPING_RATIO * HIP_ACTUATOR.reflected_inertia * NATURAL_FREQ
-
-STIFFNESS_KNEE = KNEE_ACTUATOR.reflected_inertia * NATURAL_FREQ**2
-DAMPING_KNEE = 2 * DAMPING_RATIO * KNEE_ACTUATOR.reflected_inertia * NATURAL_FREQ
-
-GO2_HIP_ACTUATOR_CFG = BuiltinPositionActuatorCfg(
-  target_names_expr=(".*_hip_joint", ".*_thigh_joint"),
-  stiffness=STIFFNESS_HIP,
-  damping=DAMPING_HIP,
-  effort_limit=HIP_ACTUATOR.effort_limit,
-  armature=HIP_ACTUATOR.reflected_inertia,
-)
-GO2_KNEE_ACTUATOR_CFG = BuiltinPositionActuatorCfg(
-  target_names_expr=(".*_calf_joint",),
-  stiffness=STIFFNESS_KNEE,
-  damping=DAMPING_KNEE,
-  effort_limit=KNEE_ACTUATOR.effort_limit,
-  armature=KNEE_ACTUATOR.reflected_inertia,
+GO2_ACTUATOR_CALF = BuiltinPositionActuatorCfg(
+  target_names_expr=(".*calf_.*",),
+  stiffness=40.0,
+  damping=2.0,
+  effort_limit=45,
+  armature=0.02,
 )
 
 ##
 # Keyframes.
 ##
 
-# TODO: go2 init state
 INIT_STATE = EntityCfg.InitialStateCfg(
-  pos=(0.0, 0.0, 0.278),
+  pos=(0.0, 0.0, 0.32),
   joint_pos={
     ".*thigh_joint": 0.9,
     ".*calf_joint": -1.8,
     ".*R_hip_joint": 0.1,
     ".*L_hip_joint": -0.1,
-    # "FL_hip_joint": 0.12,
-    # "FL_thigh_joint": 0.16,
-    # "FL_calf_joint": 0.20,
-    # "FR_hip_joint": 0.11,
-    # "FR_thigh_joint": 0.15,
-    # "FR_calf_joint": 0.19,
-    # "RL_hip_joint": 0.14,
-    # "RL_thigh_joint": 0.18,
-    # "RL_calf_joint": 0.22,
-    # "RR_hip_joint": 0.13,
-    # "RR_thigh_joint": 0.17,
-    # "RR_calf_joint": 0.21,
   },
   joint_vel={".*": 0.0},
 )
@@ -148,8 +111,9 @@ FULL_COLLISION = CollisionCfg(
 
 GO2_ARTICULATION = EntityArticulationInfoCfg(
   actuators=(
-    GO2_HIP_ACTUATOR_CFG,
-    GO2_KNEE_ACTUATOR_CFG,
+    GO2_ACTUATOR_HIP,
+    GO2_ACTUATOR_THIGH,
+    GO2_ACTUATOR_CALF,
   ),
   soft_joint_pos_limit_factor=0.9,
 )

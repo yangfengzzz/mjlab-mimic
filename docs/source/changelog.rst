@@ -8,11 +8,19 @@ Upcoming version (not yet released)
 Added
 ^^^^^
 
+- Added Go2 asset tests covering URDF-aligned mass properties and the
+  ``unitree_rl_mjlab`` actuator profile.
 - Added ``mjlab.scripts.convert_trajopt_go2`` for converting Go2 TrajOpt
   JSON solutions into tracking-ready motion ``.npz`` files.
 - Added a dedicated VS Code task for ``mjlab.scripts.convert_gc_go2`` with
   prompts for CSV path, FPS, device selection, optional line range, and video
   rendering.
+
+Changed
+^^^^^^^
+
+- Changed the default Go2 asset to use generated-URDF inertial properties and
+  the ``unitree_rl_mjlab`` actuator constants.
 
 Version 1.1.1 (February 14, 2026)
 ---------------------------------
