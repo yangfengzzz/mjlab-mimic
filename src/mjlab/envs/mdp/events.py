@@ -383,6 +383,7 @@ FIELD_SPECS = {
   "jnt_range": FieldSpec("joint"),
   "jnt_stiffness": FieldSpec("joint"),
   # Body - uses IDs directly.
+  "body_mass": FieldSpec("body"),
   "body_ipos": FieldSpec("body", default_axes=[0, 1, 2]),
   "body_iquat": FieldSpec("body", default_axes=[0, 1, 2, 3]),
   # Geom - uses IDs directly.

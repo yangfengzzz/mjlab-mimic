@@ -40,6 +40,7 @@ ROBOT_XML = """
 
 FRICTION_RANGE = (0.3, 1.2)
 DAMPING_RANGE = (0.1, 0.5)
+MASS_SCALE_RANGE = (0.9, 1.1)
 NUM_ENVS = 4
 
 
@@ -59,7 +60,7 @@ def create_test_env(device, num_envs=NUM_ENVS):
   sim_cfg = SimulationCfg()
   sim = Simulation(num_envs=num_envs, cfg=sim_cfg, model=model, device=device)
   scene.initialize(model, sim.model, sim.data)
-  sim.expand_model_fields(("geom_friction", "dof_damping"))
+  sim.expand_model_fields(("geom_friction", "dof_damping", "body_mass"))
 
   class Env:
     def __init__(self, scene, sim):
@@ -92,6 +93,7 @@ def assert_has_diversity(values, min_unique=2):
   [
     ("geom_friction", FRICTION_RANGE, "abs", {"geom_names": [".*"]}, [0], 123),
     ("dof_damping", DAMPING_RANGE, "abs", {"joint_names": [".*"]}, None, 789),
+    ("body_mass", MASS_SCALE_RANGE, "scale", {"body_names": [".*"]}, None, 321),
   ],
 )
 def test_randomize_field(device, field, ranges, operation, entity_names, axes, seed):
@@ -107,11 +109,15 @@ def test_randomize_field(device, field, ranges, operation, entity_names, axes, s
     indices = robot.indexing.geom_ids
     model_field = env.sim.model.geom_friction[:, indices[0], 0]
     initial_values = model_field.clone()
-  else:
-    assert field == "dof_damping"
+  elif field == "dof_damping":
     indices = robot.indexing.joint_v_adr
     env.sim.model.dof_damping[:, indices] = 0.0
     model_field = env.sim.model.dof_damping[:, indices[0]]
+    initial_values = model_field.clone()
+  else:
+    assert field == "body_mass"
+    indices = robot.indexing.body_ids
+    model_field = env.sim.model.body_mass[:, indices[0]]
     initial_values = model_field.clone()
 
   randomize_field(

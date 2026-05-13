@@ -7,7 +7,9 @@ from mjlab.asset_zoo.robots import (
 from mjlab.envs import ManagerBasedRlEnvCfg
 from mjlab.envs import mdp as envs_mdp
 from mjlab.envs.mdp.actions import JointPositionActionCfg
+from mjlab.managers.event_manager import EventTermCfg
 from mjlab.managers.observation_manager import ObservationGroupCfg
+from mjlab.managers.scene_entity_config import SceneEntityCfg
 from mjlab.sensor import ContactMatch, ContactSensorCfg
 from mjlab.tasks.tracking.mdp import MotionCommandCfg
 from mjlab.tasks.tracking.tracking_env_cfg import make_tracking_env_cfg
@@ -76,6 +78,69 @@ def bpx_flat_tracking_env_cfg(
     "asset_cfg"
   ].geom_names = r"^(fl|fr|hl|hr)_toe_link_collision_0$"
   cfg.events["base_com"].params["asset_cfg"].body_names = ("torso",)
+  cfg.events["body_mass"] = EventTermCfg(
+    mode="startup",
+    func=envs_mdp.randomize_field,
+    domain_randomization=True,
+    params={
+      "asset_cfg": SceneEntityCfg("robot", body_names=(".*",)),
+      "operation": "scale",
+      "field": "body_mass",
+      "ranges": (0.9, 1.1),
+    },
+  )
+  cfg.events["joint_armature"] = EventTermCfg(
+    mode="startup",
+    func=envs_mdp.randomize_field,
+    domain_randomization=True,
+    params={
+      "asset_cfg": SceneEntityCfg("robot", joint_names=(".*",)),
+      "operation": "scale",
+      "field": "dof_armature",
+      "ranges": (0.8, 1.2),
+    },
+  )
+  cfg.events["joint_damping"] = EventTermCfg(
+    mode="startup",
+    func=envs_mdp.randomize_field,
+    domain_randomization=True,
+    params={
+      "asset_cfg": SceneEntityCfg("robot", joint_names=(".*",)),
+      "operation": "abs",
+      "field": "dof_damping",
+      "ranges": (0.0, 0.05),
+    },
+  )
+  cfg.events["joint_frictionloss"] = EventTermCfg(
+    mode="startup",
+    func=envs_mdp.randomize_field,
+    domain_randomization=True,
+    params={
+      "asset_cfg": SceneEntityCfg("robot", joint_names=(".*",)),
+      "operation": "abs",
+      "field": "dof_frictionloss",
+      "ranges": (0.0, 0.2),
+    },
+  )
+  cfg.events["pd_gains"] = EventTermCfg(
+    mode="startup",
+    func=envs_mdp.randomize_pd_gains,
+    params={
+      "asset_cfg": SceneEntityCfg("robot"),
+      "kp_range": (0.9, 1.1),
+      "kd_range": (0.8, 1.2),
+      "operation": "scale",
+    },
+  )
+  cfg.events["effort_limits"] = EventTermCfg(
+    mode="startup",
+    func=envs_mdp.randomize_effort_limits,
+    params={
+      "asset_cfg": SceneEntityCfg("robot"),
+      "effort_limit_range": (0.9, 1.1),
+      "operation": "scale",
+    },
+  )
 
   cfg.terminations["ee_body_pos"].params["body_names"] = (
     "fl_toe_link",
