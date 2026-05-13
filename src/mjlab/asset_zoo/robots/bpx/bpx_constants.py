@@ -7,7 +7,6 @@ import mujoco
 from mjlab import MJLAB_SRC_PATH
 from mjlab.actuator import BuiltinPositionActuatorCfg
 from mjlab.entity import EntityArticulationInfoCfg, EntityCfg
-from mjlab.utils.actuator import ElectricActuator, reflected_inertia
 from mjlab.utils.os import update_assets
 from mjlab.utils.spec_config import CollisionCfg
 
@@ -38,46 +37,12 @@ def get_spec() -> mujoco.MjSpec:
 ##
 # Actuator config.
 ##
-
-# BPX ships motor actuators in MJCF, but not detailed motor constants. Use the
-# Go1/Go2 position-actuator model as a conservative starting point.
-ROTOR_INERTIA = 0.000111842
-HIP_GEAR_RATIO = 6.0
-KNEE_GEAR_RATIO = HIP_GEAR_RATIO * 1.5
-
-HIP_ACTUATOR = ElectricActuator(
-  reflected_inertia=reflected_inertia(ROTOR_INERTIA, HIP_GEAR_RATIO),
-  velocity_limit=30.0,
+BPX_ACTUATOR_CFG = BuiltinPositionActuatorCfg(
+  target_names_expr=(".*_hip_roll_joint", ".*_hip_pitch_joint", ".*_knee_joint"),
+  stiffness=30.0,
+  damping=1.0,
   effort_limit=30.0,
-)
-KNEE_ACTUATOR = ElectricActuator(
-  reflected_inertia=reflected_inertia(ROTOR_INERTIA, KNEE_GEAR_RATIO),
-  velocity_limit=20.0,
-  effort_limit=30.0,
-)
-
-NATURAL_FREQ = 10.0 * 2.0 * 3.1415926535
-DAMPING_RATIO = 2.0
-
-STIFFNESS_HIP = HIP_ACTUATOR.reflected_inertia * NATURAL_FREQ**2
-DAMPING_HIP = 2.0 * DAMPING_RATIO * HIP_ACTUATOR.reflected_inertia * NATURAL_FREQ
-
-STIFFNESS_KNEE = KNEE_ACTUATOR.reflected_inertia * NATURAL_FREQ**2
-DAMPING_KNEE = 2.0 * DAMPING_RATIO * KNEE_ACTUATOR.reflected_inertia * NATURAL_FREQ
-
-BPX_HIP_ACTUATOR_CFG = BuiltinPositionActuatorCfg(
-  target_names_expr=(".*_hip_roll_joint", ".*_hip_pitch_joint"),
-  stiffness=STIFFNESS_HIP,
-  damping=DAMPING_HIP,
-  effort_limit=HIP_ACTUATOR.effort_limit,
-  armature=HIP_ACTUATOR.reflected_inertia,
-)
-BPX_KNEE_ACTUATOR_CFG = BuiltinPositionActuatorCfg(
-  target_names_expr=(".*_knee_joint",),
-  stiffness=STIFFNESS_KNEE,
-  damping=DAMPING_KNEE,
-  effort_limit=KNEE_ACTUATOR.effort_limit,
-  armature=KNEE_ACTUATOR.reflected_inertia,
+  armature=0.01,
 )
 
 ##
@@ -115,8 +80,7 @@ FULL_COLLISION = CollisionCfg(
 
 BPX_ARTICULATION = EntityArticulationInfoCfg(
   actuators=(
-    BPX_HIP_ACTUATOR_CFG,
-    BPX_KNEE_ACTUATOR_CFG,
+    BPX_ACTUATOR_CFG,
   ),
   soft_joint_pos_limit_factor=0.9,
 )
