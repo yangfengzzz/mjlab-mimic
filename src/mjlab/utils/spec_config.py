@@ -30,6 +30,7 @@ _GEOM_ATTR_DEFAULTS = {
   "friction": None,
   "solref": None,
   "solimp": None,
+  "margin": None,
 }
 
 _LIGHT_TYPE_MAP = {
@@ -160,6 +161,8 @@ class CollisionCfg(SpecCfg):
   """Solver reference parameters as tuple or dict mapping patterns to tuples."""
   solimp: tuple[float, ...] | dict[str, tuple[float, ...]] | None = None
   """Solver impedance parameters as tuple or dict mapping patterns to tuples."""
+  margin: float | dict[str, float] | None = None
+  """Contact inclusion margin as scalar or dict mapping patterns to values."""
   disable_other_geoms: bool = True
   """Whether to disable collision for non-matching geoms."""
 
@@ -192,6 +195,8 @@ class CollisionCfg(SpecCfg):
       raise ValueError("conaffinity must be non-negative")
     if isinstance(self.priority, int) and self.priority < 0:
       raise ValueError("priority must be non-negative")
+    if isinstance(self.margin, (float, int)) and self.margin < 0:
+      raise ValueError("margin must be non-negative")
 
     # Validate dict parameters (excluding condim which is handled above).
     for field_name in ["contype", "conaffinity", "priority"]:
@@ -202,6 +207,13 @@ class CollisionCfg(SpecCfg):
             raise ValueError(
               f"{field_name} must be non-negative, got {value} for pattern '{pattern}'"
             )
+
+    if isinstance(self.margin, dict):
+      for pattern, value in self.margin.items():
+        if value < 0:
+          raise ValueError(
+            f"margin must be non-negative, got {value} for pattern '{pattern}'"
+          )
 
   def edit_spec(self, spec: mujoco.MjSpec) -> None:
     from mjlab.utils.spec import disable_collision
@@ -225,6 +237,8 @@ class CollisionCfg(SpecCfg):
       geom.contype = resolved_fields["contype"][i]
       geom.conaffinity = resolved_fields["conaffinity"][i]
       geom.priority = resolved_fields["priority"][i]
+      if resolved_fields["margin"][i] is not None:
+        geom.margin = resolved_fields["margin"][i]
 
       CollisionCfg.set_array_field(geom.friction, resolved_fields["friction"][i])
       CollisionCfg.set_array_field(geom.solref, resolved_fields["solref"][i])

@@ -91,6 +91,7 @@ FEET_ONLY_COLLISION = CollisionCfg(
   priority=1,
   friction=(0.6,),
   solimp=(0.9, 0.95, 0.023),
+  margin=0.0,
 )
 
 # This enables all collisions, excluding self collisions.
@@ -103,6 +104,19 @@ FULL_COLLISION = CollisionCfg(
   solimp={_foot_regex: (0.9, 0.95, 0.023)},
   contype=1,
   conaffinity=0,
+  margin=0.0,
+)
+
+# This enables all collisions, including self collisions.
+FULL_COLLISION_WITH_SELF = CollisionCfg(
+  geom_names_expr=(".*_collision",),
+  condim={_foot_regex: 3, ".*_collision": 1},
+  priority={_foot_regex: 1},
+  friction={_foot_regex: (0.6,)},
+  solimp={_foot_regex: (0.9, 0.95, 0.023)},
+  contype=1,
+  conaffinity=1,
+  margin=0.0,
 )
 
 ##
@@ -119,15 +133,16 @@ GO2_ARTICULATION = EntityArticulationInfoCfg(
 )
 
 
-def get_go2_robot_cfg() -> EntityCfg:
+def get_go2_robot_cfg(self_collisions: bool = False) -> EntityCfg:
   """Get a fresh GO2 robot configuration instance.
 
   Returns a new EntityCfg instance each time to avoid mutation issues when
   the config is shared across multiple places.
   """
+  collision_cfg = FULL_COLLISION_WITH_SELF if self_collisions else FULL_COLLISION
   return EntityCfg(
     init_state=INIT_STATE,
-    collisions=(FULL_COLLISION,),
+    collisions=(collision_cfg,),
     spec_fn=get_spec,
     articulation=GO2_ARTICULATION,
   )

@@ -34,6 +34,8 @@ class MotionLoader:
     self,
     motion_file: str,
     body_indexes: torch.Tensor,
+    body_names: tuple[str, ...],
+    robot_body_names: tuple[str, ...],
     use_joint_tau: bool = False,
     device: str = "cpu",
   ) -> None:
@@ -61,12 +63,56 @@ class MotionLoader:
     self._body_ang_vel_w = torch.tensor(
       data["body_ang_vel_w"], dtype=torch.float32, device=device
     )
-    self._body_indexes = body_indexes
+    self._body_indexes = self._resolve_body_indexes(
+      data,
+      body_indexes,
+      body_names,
+      robot_body_names,
+      device,
+    )
     self.body_pos_w = self._body_pos_w[:, self._body_indexes]
     self.body_quat_w = self._body_quat_w[:, self._body_indexes]
     self.body_lin_vel_w = self._body_lin_vel_w[:, self._body_indexes]
     self.body_ang_vel_w = self._body_ang_vel_w[:, self._body_indexes]
     self.time_step_total = self.joint_pos.shape[0]
+
+  def _resolve_body_indexes(
+    self,
+    data: np.lib.npyio.NpzFile,
+    body_indexes: torch.Tensor,
+    body_names: tuple[str, ...],
+    robot_body_names: tuple[str, ...],
+    device: str,
+  ) -> torch.Tensor:
+    motion_body_count = int(self._body_pos_w.shape[1])
+    if int(body_indexes.max().item()) < motion_body_count:
+      return body_indexes
+
+    if "body_names" in data.files:
+      motion_body_names = [str(name) for name in data["body_names"]]
+    else:
+      motion_body_names = [
+        name
+        for name in robot_body_names
+        if not name.startswith("Head_") and not name.endswith("_rotor")
+      ]
+
+    if len(motion_body_names) != motion_body_count:
+      raise ValueError(
+        f"Motion file has {motion_body_count} bodies but inferred "
+        f"{len(motion_body_names)} body names."
+      )
+
+    name_to_index = {name: i for i, name in enumerate(motion_body_names)}
+    try:
+      motion_indexes = [name_to_index[name] for name in body_names]
+    except KeyError as exc:
+      missing_name = exc.args[0]
+      raise KeyError(
+        f"Motion file does not contain body '{missing_name}'."
+      ) from exc
+
+    return torch.tensor(motion_indexes, dtype=torch.long, device=device)
 
 
 class MotionCommand(CommandTerm):
@@ -90,6 +136,8 @@ class MotionCommand(CommandTerm):
     self.motion = MotionLoader(
       self.cfg.motion_file,
       self.body_indexes,
+      self.cfg.body_names,
+      self.robot.body_names,
       use_joint_tau=self.cfg.use_joint_tau,
       device=self.device,
     )

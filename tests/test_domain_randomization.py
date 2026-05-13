@@ -59,7 +59,7 @@ def create_test_env(device, num_envs=NUM_ENVS):
   sim_cfg = SimulationCfg()
   sim = Simulation(num_envs=num_envs, cfg=sim_cfg, model=model, device=device)
   scene.initialize(model, sim.model, sim.data)
-  sim.expand_model_fields(("geom_friction", "dof_damping"))
+  sim.expand_model_fields(("geom_friction", "dof_damping", "body_mass"))
 
   class Env:
     def __init__(self, scene, sim):
@@ -332,6 +332,37 @@ def test_randomize_field_shared_random(device):
 
   # All values should be in range.
   assert_values_in_range(friction, FRICTION_RANGE[0], FRICTION_RANGE[1])
+
+
+def test_randomize_body_mass_scale_shared_random(device):
+  """Verify body mass can be scaled with one shared factor per environment."""
+  torch.manual_seed(100)
+  env = create_test_env(device, num_envs=4)
+  robot = env.scene["robot"]
+
+  body_ids = robot.indexing.body_ids
+  default_mass = env.sim.get_default_field("body_mass")[body_ids].clone()
+
+  randomize_field(
+    env,  # pyright: ignore[reportArgumentType]
+    env_ids=None,
+    field="body_mass",
+    ranges=(0.95, 1.10),
+    operation="scale",
+    asset_cfg=SceneEntityCfg("robot", body_names=(".*",)),
+    shared_random=True,
+  )
+
+  body_mass = env.sim.model.body_mass[:, body_ids]
+  nonzero = default_mass > 0.0
+  scale = body_mass[:, nonzero] / default_mass[nonzero]
+
+  assert_values_in_range(scale, 0.95, 1.10)
+  for env_idx in range(env.num_envs):
+    env_scale = scale[env_idx]
+    assert torch.allclose(env_scale, env_scale[0].expand_as(env_scale))
+
+  assert_has_diversity(scale[:, 0])
 
 
 @pytest.mark.slow

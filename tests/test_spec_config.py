@@ -98,16 +98,19 @@ def test_collision_dict_field_resolution(multi_geom_spec):
     geom_names_expr=(r".*_foot\d_collision$", "arm_collision"),
     condim={r".*_foot\d_collision$": 3, "arm_collision": 1},
     priority={r".*_foot\d_collision$": 2, "arm_collision": 0},
+    margin={r".*_foot\d_collision$": 0.0, "arm_collision": 0.02},
   )
   collision_cfg.edit_spec(multi_geom_spec)
 
   left_foot = multi_geom_spec.geom("left_foot1_collision")
   assert left_foot.condim == 3
   assert left_foot.priority == 2
+  assert left_foot.margin == 0.0
 
   arm = multi_geom_spec.geom("arm_collision")
   assert arm.condim == 1
   assert arm.priority == 0
+  assert arm.margin == 0.02
 
 
 def test_collision_disable_other_geoms(multi_geom_spec):
@@ -137,6 +140,7 @@ def test_collision_disable_other_geoms(multi_geom_spec):
     ("contype", -1, "contype must be non-negative"),
     ("conaffinity", -1, "conaffinity must be non-negative"),
     ("priority", -1, "priority must be non-negative"),
+    ("margin", -1.0, "margin must be non-negative"),
   ],
 )
 # fmt: on
@@ -148,6 +152,7 @@ def test_collision_validation(param, value, expected_error):
     conaffinity = value if param == "conaffinity" else 1
     condim = value if param == "condim" else 3
     priority = value if param == "priority" else 0
+    margin = value if param == "margin" else None
 
     cfg = CollisionCfg(
       geom_names_expr=geom_names_expr,
@@ -155,6 +160,7 @@ def test_collision_validation(param, value, expected_error):
       conaffinity=conaffinity,
       condim=condim,
       priority=priority,
+      margin=margin,
     )
     cfg.validate()
 

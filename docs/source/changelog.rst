@@ -22,6 +22,12 @@ Changed
 - Changed the default Go2 asset to use generated-URDF inertial properties and
   the ``unitree_rl_mjlab`` actuator constants.
 
+Fixed
+^^^^^
+
+- Fixed Go2 tracking tasks disabling robot self-collisions, which prevented
+  the ``self_collision`` sensor and reward from detecting contacts.
+
 Version 1.1.1 (February 14, 2026)
 ---------------------------------
 
