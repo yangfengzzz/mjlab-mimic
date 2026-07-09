@@ -108,7 +108,7 @@ def test_backflip_tasks_have_expected_training_cfg(task_id: str) -> None:
   stance_params = cfg.rewards["feet_distance"].params
   if task_id.endswith("BPX"):
     assert height_params["target_height"] == 0.36
-    assert stance_params["stance_width"] == 0.3298
+    assert stance_params["stance_width"] == 0.34244
     assert cfg.rewards["nonfoot_contact"].weight == -2.0
   else:
     assert height_params["target_height"] == 0.3

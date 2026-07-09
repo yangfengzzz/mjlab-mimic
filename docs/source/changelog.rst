@@ -27,6 +27,8 @@ Fixed
 Changed
 ^^^^^^^
 
+- Updated the bundled BPX MJCF and mesh assets from the latest local BPX
+  MuJoCo model.
 - Tuned the BPX backflip task reward parameters for BPX geometry and added a
   non-foot ground-contact penalty.
 
