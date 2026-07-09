@@ -40,26 +40,26 @@ class SceneEntityCfg:
   name: str
   """The name of the entity in the scene."""
 
-  joint_names: str | tuple[str, ...] | None = None
-  """Names of joints to include. Can be a single string or tuple."""
+  joint_names: str | tuple[str, ...] | list[str] | None = None
+  """Names of joints to include. Can be a single string, tuple, or list."""
 
   joint_ids: list[int] | slice = field(default_factory=lambda: slice(None))
   """IDs of joints to include. Can be a list or slice."""
 
-  body_names: str | tuple[str, ...] | None = None
-  """Names of bodies to include. Can be a single string or tuple."""
+  body_names: str | tuple[str, ...] | list[str] | None = None
+  """Names of bodies to include. Can be a single string, tuple, or list."""
 
   body_ids: list[int] | slice = field(default_factory=lambda: slice(None))
   """IDs of bodies to include. Can be a list or slice."""
 
-  geom_names: str | tuple[str, ...] | None = None
-  """Names of geometries to include. Can be a single string or tuple."""
+  geom_names: str | tuple[str, ...] | list[str] | None = None
+  """Names of geometries to include. Can be a single string, tuple, or list."""
 
   geom_ids: list[int] | slice = field(default_factory=lambda: slice(None))
   """IDs of geometries to include. Can be a list or slice."""
 
-  site_names: str | tuple[str, ...] | None = None
-  """Names of sites to include. Can be a single string or tuple."""
+  site_names: str | tuple[str, ...] | list[str] | None = None
+  """Names of sites to include. Can be a single string, tuple, or list."""
 
   site_ids: list[int] | slice = field(default_factory=lambda: slice(None))
   """IDs of sites to include. Can be a list or slice."""
@@ -134,12 +134,16 @@ class SceneEntityCfg:
     elif isinstance(ids, list):
       self._resolve_ids_to_names(ids, entity_all_names, config.names_attr)
 
-  def _normalize_to_list(self, value: str | int | list | None) -> list | None:
+  def _normalize_to_list(
+    self, value: str | int | tuple[str, ...] | list[str] | list[int] | None
+  ) -> list | None:
     """Convert single values to lists for uniform processing."""
     if value is None:
       return None
     if isinstance(value, (str, int)):
       return [value]
+    if isinstance(value, tuple):
+      return list(value)
     return value
 
   def _validate_consistency(

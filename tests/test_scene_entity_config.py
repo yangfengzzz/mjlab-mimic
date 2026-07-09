@@ -139,3 +139,14 @@ def test_inconsistent_names_and_ids_raise(
 
   with pytest.raises(ValueError):
     cfg.resolve(fake_scene)
+
+
+def test_tuple_names_can_resolve_multiple_times(fake_scene):
+  """Tuple names normalize to lists so repeated resolution remains consistent."""
+  cfg = SceneEntityCfg(name="robot", body_names=("a", "c"))
+
+  cfg.resolve(fake_scene)
+  cfg.resolve(fake_scene)
+
+  assert cfg.body_names == ["a", "c"]
+  assert cfg.body_ids == [0, 2]

@@ -8,6 +8,8 @@ Upcoming version (not yet released)
 Added
 ^^^^^
 
+- Added Genesis-style flat backflip training tasks for Unitree Go2 and Black
+  Panther X (BPX).
 - Added Black Panther X (BPX) robot assets and flat motion tracking task
   configurations.
 - Added a BPX TrajOpt JSON converter that exports train-ready motion
@@ -15,6 +17,12 @@ Added
 - Added a dedicated VS Code task for ``mjlab.scripts.convert_gc_go2`` with
   prompts for CSV path, FPS, device selection, optional line range, and video
   rendering.
+
+Fixed
+^^^^^
+
+- Fixed ``SceneEntityCfg`` tuple name normalization when the same scene entity
+  selector is resolved by multiple manager terms.
 
 Version 1.1.1 (February 14, 2026)
 ---------------------------------
