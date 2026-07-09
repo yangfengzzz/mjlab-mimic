@@ -44,6 +44,14 @@ EXPECTED_ACTION_ORDER = {
   ],
 }
 
+EXPECTED_SENSOR_NAMES = {
+  "Mjlab-Backflip-Flat-Unitree-Go2": {"feet_ground_contact"},
+  "Mjlab-Backflip-Flat-BPX": {
+    "feet_ground_contact",
+    "nonfoot_ground_contact",
+  },
+}
+
 
 def test_backflip_tasks_are_registered() -> None:
   tasks = set(list_tasks())
@@ -59,7 +67,7 @@ def test_backflip_tasks_have_expected_training_cfg(task_id: str) -> None:
   assert cfg.scene.terrain is not None
   assert cfg.scene.terrain.terrain_type == "plane"
   assert "robot" in cfg.scene.entities
-  assert {sensor.name for sensor in cfg.scene.sensors} == {"feet_ground_contact"}
+  assert {sensor.name for sensor in cfg.scene.sensors} == EXPECTED_SENSOR_NAMES[task_id]
 
   assert cfg.episode_length_s == 2.0
   assert cfg.decimation == 4
@@ -94,6 +102,17 @@ def test_backflip_tasks_have_expected_training_cfg(task_id: str) -> None:
     "action_rate",
   ):
     assert reward_name in cfg.rewards
+  assert ("nonfoot_contact" in cfg.rewards) == task_id.endswith("BPX")
+
+  height_params = cfg.rewards["height_control"].params
+  stance_params = cfg.rewards["feet_distance"].params
+  if task_id.endswith("BPX"):
+    assert height_params["target_height"] == 0.36
+    assert stance_params["stance_width"] == 0.3298
+    assert cfg.rewards["nonfoot_contact"].weight == -2.0
+  else:
+    assert height_params["target_height"] == 0.3
+    assert stance_params["stance_width"] == 0.3
 
   rl_cfg = load_rl_cfg(task_id)
   assert rl_cfg.max_iterations == 1000

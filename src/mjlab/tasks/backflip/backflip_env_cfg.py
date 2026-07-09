@@ -30,6 +30,11 @@ def make_backflip_env_cfg(
   foot_contact_pattern: tuple[str, ...],
   base_body_name: str,
   action_scale: float | dict[str, float],
+  height_target: float = 0.3,
+  stance_width: float = 0.3,
+  nonfoot_contact_pattern: str | tuple[str, ...] | None = None,
+  nonfoot_contact_exclude: tuple[str, ...] = (),
+  nonfoot_contact_weight: float = 0.0,
   init_joint_noise: float = 0.02,
   init_yaw_noise: float = 0.05,
   num_envs: int = 4096,
@@ -60,6 +65,24 @@ def make_backflip_env_cfg(
     num_slots=1,
     track_air_time=True,
   )
+  sensors: tuple[ContactSensorCfg, ...] = (feet_ground_cfg,)
+  if nonfoot_contact_pattern is not None and nonfoot_contact_weight != 0.0:
+    nonfoot_ground_cfg = ContactSensorCfg(
+      name="nonfoot_ground_contact",
+      primary=ContactMatch(
+        mode="geom",
+        pattern=nonfoot_contact_pattern,
+        entity="robot",
+        exclude=nonfoot_contact_exclude,
+      ),
+      secondary=ContactMatch(mode="body", pattern="terrain"),
+      fields=("found",),
+      reduce="none",
+      num_slots=1,
+    )
+    sensors += (nonfoot_ground_cfg,)
+  else:
+    nonfoot_ground_cfg = None
 
   actor_terms = {
     "base_ang_vel": ObservationTermCfg(
@@ -110,7 +133,7 @@ def make_backflip_env_cfg(
     "height_control": RewardTermCfg(
       func=mdp.height_control_penalty,
       weight=-10.0,
-      params={"target_height": 0.3},
+      params={"target_height": height_target},
     ),
     "actions_symmetry": RewardTermCfg(
       func=mdp.action_symmetry_penalty,
@@ -120,10 +143,16 @@ def make_backflip_env_cfg(
     "feet_distance": RewardTermCfg(
       func=mdp.feet_distance_penalty,
       weight=-1.0,
-      params={"asset_cfg": feet_bodies()},
+      params={"asset_cfg": feet_bodies(), "stance_width": stance_width},
     ),
     "action_rate": RewardTermCfg(func=envs_mdp.action_rate_l2, weight=-0.001),
   }
+  if nonfoot_ground_cfg is not None:
+    rewards["nonfoot_contact"] = RewardTermCfg(
+      func=mdp.nonfoot_contact_penalty,
+      weight=nonfoot_contact_weight,
+      params={"sensor_name": nonfoot_ground_cfg.name},
+    )
 
   events = {
     "reset_base": EventTermCfg(
@@ -158,7 +187,7 @@ def make_backflip_env_cfg(
     scene=SceneCfg(
       terrain=TerrainImporterCfg(terrain_type="plane"),
       entities={"robot": robot_cfg},
-      sensors=(feet_ground_cfg,),
+      sensors=sensors,
       num_envs=1 if play else num_envs,
       env_spacing=2.0,
       extent=2.0,

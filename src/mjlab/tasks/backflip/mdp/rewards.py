@@ -8,6 +8,7 @@ import torch
 
 from mjlab.entity import Entity
 from mjlab.managers.scene_entity_config import SceneEntityCfg
+from mjlab.sensor import ContactSensor
 from mjlab.utils.lab_api.math import quat_apply_inverse, quat_from_angle_axis
 
 if TYPE_CHECKING:
@@ -48,7 +49,9 @@ def orientation_control_penalty(
   axis = torch.zeros((env.num_envs, 3), device=env.device)
   axis[:, 1] = 1.0
   quat_pitch = quat_from_angle_axis(angle, axis)
-  gravity = asset.data.gravity_vec_w.reshape(1, 3).expand(env.num_envs, -1)
+  gravity = asset.data.gravity_vec_w.reshape(-1, 3)
+  if gravity.shape[0] == 1:
+    gravity = gravity.expand(env.num_envs, -1)
   desired_gravity = quat_apply_inverse(quat_pitch, gravity)
   gravity_error = asset.data.projected_gravity_b - desired_gravity
   return torch.sum(torch.square(gravity_error), dim=1)
@@ -154,3 +157,10 @@ def feet_height_before_backflip_penalty(
   )
   foot_height = torch.clamp(foot_height - ground_offset, min=0.0)
   return torch.sum(foot_height, dim=1) * active
+
+
+def nonfoot_contact_penalty(env: ManagerBasedRlEnv, sensor_name: str) -> torch.Tensor:
+  """Penalize non-foot ground contacts."""
+  sensor: ContactSensor = env.scene[sensor_name]
+  assert sensor.data.found is not None
+  return (sensor.data.found > 0).float().flatten(start_dim=1).sum(dim=1)

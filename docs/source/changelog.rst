@@ -24,6 +24,12 @@ Fixed
 - Fixed ``SceneEntityCfg`` tuple name normalization when the same scene entity
   selector is resolved by multiple manager terms.
 
+Changed
+^^^^^^^
+
+- Tuned the BPX backflip task reward parameters for BPX geometry and added a
+  non-foot ground-contact penalty.
+
 Version 1.1.1 (February 14, 2026)
 ---------------------------------
 

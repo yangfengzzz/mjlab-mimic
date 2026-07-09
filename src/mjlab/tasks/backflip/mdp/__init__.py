@@ -19,5 +19,8 @@ from mjlab.tasks.backflip.mdp.rewards import (
 )
 from mjlab.tasks.backflip.mdp.rewards import lin_vel_z_reward as lin_vel_z_reward
 from mjlab.tasks.backflip.mdp.rewards import (
+  nonfoot_contact_penalty as nonfoot_contact_penalty,
+)
+from mjlab.tasks.backflip.mdp.rewards import (
   orientation_control_penalty as orientation_control_penalty,
 )
