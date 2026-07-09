@@ -83,6 +83,8 @@ class OffscreenRenderer:
     # Add additional environments as geoms.
     nworld = data.nworld
     for i in range(min(nworld, _MAX_ENVS)):
+      if i == env_idx:
+        continue
       if self._model.nq > 0:
         self._data.qpos[:] = data.qpos[i].cpu().numpy()
         self._data.qvel[:] = data.qvel[i].cpu().numpy()

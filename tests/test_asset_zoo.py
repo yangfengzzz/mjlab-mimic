@@ -33,6 +33,13 @@ def test_bpx_uses_project_position_actuators_only() -> None:
   assert not any(name.endswith("_motor") for name in robot.actuator_names)
 
 
+def test_bpx_robot_cfg_does_not_include_demo_floor() -> None:
+  """BPX tasks should rely on scene terrain instead of the asset demo floor."""
+  robot = Entity(get_bpx_robot_cfg())
+
+  assert "floor" not in robot.geom_names
+
+
 def test_bpx_default_pose_matches_sideflip_nominal_pose() -> None:
   """BPX zero action should target the side-flip nominal starting pose."""
   robot = Entity(get_bpx_robot_cfg())

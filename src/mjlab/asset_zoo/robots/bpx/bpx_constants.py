@@ -27,6 +27,9 @@ def get_assets(meshdir: str) -> dict[str, bytes]:
 def get_spec() -> mujoco.MjSpec:
   spec = mujoco.MjSpec.from_file(str(BPX_XML))
   spec.assets = get_assets(spec.meshdir)
+  # BPX's source MJCF includes a demo floor. Tasks add their own terrain, so
+  # keeping this plane creates overlapping ground geoms in rendered scenes.
+  spec.delete(spec.geom("floor"))
   # BPX ships torque motor actuators in MJCF. Delete them so mjlab owns the
   # actuator model and action space, matching the Go2 tracking setup.
   while spec.actuators:
