@@ -15,6 +15,7 @@ import tyro
 from tqdm import tqdm
 
 import mjlab
+from mjlab.asset_zoo.robots import BPX_JOINT_NAMES
 from mjlab.entity import Entity
 from mjlab.scene import Scene
 from mjlab.sim.sim import Simulation, SimulationCfg
@@ -27,21 +28,6 @@ from mjlab.utils.lab_api.math import (
 )
 from mjlab.viewer.offscreen_renderer import OffscreenRenderer
 from mjlab.viewer.viewer_config import ViewerConfig
-
-BPX_JOINT_NAMES = (
-  "fl_hip_roll_joint",
-  "fl_hip_pitch_joint",
-  "fl_knee_joint",
-  "fr_hip_roll_joint",
-  "fr_hip_pitch_joint",
-  "fr_knee_joint",
-  "hl_hip_roll_joint",
-  "hl_hip_pitch_joint",
-  "hl_knee_joint",
-  "hr_hip_roll_joint",
-  "hr_hip_pitch_joint",
-  "hr_knee_joint",
-)
 
 REQUIRED_NPZ_KEYS = (
   "fps",

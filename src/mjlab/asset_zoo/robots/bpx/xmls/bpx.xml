@@ -33,7 +33,7 @@
     <light name="sun" pos="1.5 -1.5 2.5" dir="-0.4 0.4 -1" directional="true" diffuse="0.9 0.9 0.9" specular="0.2 0.2 0.2" />
     <geom name="floor" type="plane" size="3 3 0.1" material="grid_mat" />
     <body name="torso" pos="0 0 0.42">
-      <inertial mass="6.829" pos="0.0151448 0.0033341 -0.0031076" fullinertia="0.0291671 0.1285119 0.1380718 0.0019891 0.0003146 8.12e-05" />
+      <inertial mass="7.829" pos="0.0151448 0.0033341 -0.0031076" fullinertia="0.0291671 0.1285119 0.1380718 0.0019891 0.0003146 8.12e-05" />
       <geom name="torso_collision_0" group="3" type="box" size="0.1706 0.08 0.0791" />
       <geom name="torso_collision_1" group="3" pos="0 0 -0.09" type="box" size="0.1706 0.08 0.014" />
       <geom name="torso_collision_2" group="3" pos="0.28 0 0" type="box" size="0.006645 0.068 0.013" />

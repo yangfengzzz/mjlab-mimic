@@ -40,8 +40,24 @@ def get_spec() -> mujoco.MjSpec:
 ##
 # Actuator config.
 ##
+
+BPX_JOINT_NAMES = (
+  "fl_hip_roll_joint",
+  "fl_hip_pitch_joint",
+  "fl_knee_joint",
+  "fr_hip_roll_joint",
+  "fr_hip_pitch_joint",
+  "fr_knee_joint",
+  "hl_hip_roll_joint",
+  "hl_hip_pitch_joint",
+  "hl_knee_joint",
+  "hr_hip_roll_joint",
+  "hr_hip_pitch_joint",
+  "hr_knee_joint",
+)
+
 BPX_ACTUATOR_CFG = BuiltinPositionActuatorCfg(
-  target_names_expr=(".*_hip_roll_joint", ".*_hip_pitch_joint", ".*_knee_joint"),
+  target_names_expr=BPX_JOINT_NAMES,
   stiffness=30.0,
   damping=1.0,
   effort_limit=30.0,
@@ -55,9 +71,18 @@ BPX_ACTUATOR_CFG = BuiltinPositionActuatorCfg(
 INIT_STATE = EntityCfg.InitialStateCfg(
   pos=(0.0, 0.0, 0.42),
   joint_pos={
-    ".*_hip_roll_joint": 0.0,
-    ".*_hip_pitch_joint": 0.6,
-    ".*_knee_joint": -0.9,
+    "fl_hip_roll_joint": 0.0,
+    "fl_hip_pitch_joint": 0.6,
+    "fl_knee_joint": -0.9,
+    "fr_hip_roll_joint": 0.0,
+    "fr_hip_pitch_joint": 0.6,
+    "fr_knee_joint": -0.9,
+    "hl_hip_roll_joint": 0.0,
+    "hl_hip_pitch_joint": 0.6,
+    "hl_knee_joint": -0.9,
+    "hr_hip_roll_joint": 0.0,
+    "hr_hip_pitch_joint": 0.6,
+    "hr_knee_joint": -0.9,
   },
   joint_vel={".*": 0.0},
 )

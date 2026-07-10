@@ -2,6 +2,9 @@ from mjlab.asset_zoo.robots.bpx.bpx_constants import (
   BPX_ACTION_SCALE as BPX_ACTION_SCALE,
 )
 from mjlab.asset_zoo.robots.bpx.bpx_constants import (
+  BPX_JOINT_NAMES as BPX_JOINT_NAMES,
+)
+from mjlab.asset_zoo.robots.bpx.bpx_constants import (
   get_bpx_robot_cfg as get_bpx_robot_cfg,
 )
 from mjlab.asset_zoo.robots.i2rt_yam.yam_constants import (

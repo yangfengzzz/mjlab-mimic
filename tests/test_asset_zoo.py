@@ -3,6 +3,7 @@ import numpy as np
 import pytest
 
 from mjlab.asset_zoo.robots import (
+  BPX_JOINT_NAMES,
   get_bpx_robot_cfg,
   get_g1_robot_cfg,
   get_go1_robot_cfg,
@@ -30,6 +31,8 @@ def test_bpx_uses_project_position_actuators_only() -> None:
   model = robot.compile()
 
   assert model.nu == 12
+  assert robot.actuator_names == BPX_JOINT_NAMES
+  assert robot.joint_names == BPX_JOINT_NAMES
   assert not any(name.endswith("_motor") for name in robot.actuator_names)
 
 
